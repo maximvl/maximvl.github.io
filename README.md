@@ -1,5 +1,7 @@
 # Eldritch Implicits
 
+**Live: <https://maximvl.github.io/>**
+
 A small Svelte 5 + TypeScript browser for the Eldritch implicit modifiers from the **Searing Exarch** and
 **Eater of Worlds** currencies, scraped from
 [poedb](https://poedb.tw/us/Eldritch_implicit).
@@ -33,6 +35,13 @@ pnpm check    # svelte-check + tsc (app, configs and scraper)
 pnpm build
 pnpm preview
 ```
+
+## Deployment
+
+Pushes to `master` are built and published to GitHub Pages by
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): the workflow installs with pnpm,
+runs `pnpm check` and `pnpm build`, then uploads `dist` through `actions/deploy-pages`. This is a
+user page (`maximvl.github.io`), so Vite's default `/` base is correct.
 
 ## Data
 
