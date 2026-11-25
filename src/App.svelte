@@ -46,10 +46,6 @@
   </main>
 
   <footer>
-    <a href="https://github.com/maximvl/maximvl.github.io" target="_blank" rel="noreferrer">
-      Source on GitHub
-    </a>
-    <span class="dot" aria-hidden="true">·</span>
     <span>mapcar</span>
   </footer>
 </div>
@@ -227,18 +223,6 @@
     padding-top: 2.5rem;
     color: var(--muted);
     font-size: 0.78rem;
-  }
-
-  footer a {
-    color: var(--muted);
-  }
-
-  footer a:hover {
-    color: var(--gold);
-  }
-
-  .dot {
-    opacity: 0.6;
   }
 
   @media (max-width: 640px) {
