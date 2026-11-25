@@ -1,3 +1,47 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-base: #0d1014;
+  --color-panel: #151a21;
+  --color-line: #262d37;
+  --color-ink: #c3ccd8;
+  --color-bright: #eef3fa;
+  --color-muted: #7f8b9c;
+  --color-gold: #c8a24a;
+  --color-exarch: #e2683f;
+  --color-eater: #38b6a6;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(24px, -32px, 0) scale(1.08);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
 :root {
   --bg: #0d1014;
   --surface: #151a21;

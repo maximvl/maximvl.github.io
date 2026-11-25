@@ -2,8 +2,7 @@
 
 **Live: <https://maximvl.github.io/>**
 
-Personal project index for mapcar, built with Svelte 5, TypeScript and
-Vite.
+Personal project index for mapcar, built with Svelte 5, TypeScript, Vite and Tailwind CSS.
 
 ## Site
 
@@ -15,6 +14,14 @@ Both pages are separate static HTML entries built by Vite (`index.html` and `mod
 each has a real URL and no client-side router is needed. The project list lives in
 [`src/lib/projects.ts`](src/lib/projects.ts); add an entry there to show another project on the home
 page.
+
+## Styling
+
+[`src/app.css`](src/app.css) holds the shared theme: the `:root` custom properties used by the
+modifier browser plus Tailwind v4's `@theme` tokens (`base`, `panel`, `gold`, `exarch`, `eater`, …)
+and the keyframes used on the index page. The index page is styled with Tailwind utility classes;
+the modifier browser keeps its scoped component CSS. Tailwind is wired up through
+`@tailwindcss/vite` in [`vite.config.ts`](vite.config.ts).
 
 ## Eldritch Implicits
 
@@ -89,7 +96,8 @@ of rows where poedb omits the mod-id tooltip. Re-run it when poedb updates for a
 ```
 index.html                   project index entry page
 mods/index.html              Eldritch browser entry page
-src/App.svelte               project index
+src/App.svelte               project index (Tailwind utility classes)
+src/app.css                  shared theme, Tailwind theme tokens and keyframes
 src/Mods.svelte              filters, search and card grid
 src/main.ts                  mounts the project index
 src/mods.ts                  mounts the Eldritch browser
