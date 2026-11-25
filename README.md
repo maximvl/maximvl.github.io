@@ -43,11 +43,12 @@ Pushes to `master` are built and published to GitHub Pages by
 runs `pnpm check` and `pnpm build`, then uploads `dist` through `actions/deploy-pages`. This is a
 user page (`maximvl.github.io`), so Vite's default `/` base is correct.
 
-The same repository also deploys to Cloudflare Workers as a static-assets site. `wrangler.jsonc`
-holds the whole configuration: `build.command` runs `pnpm build` and `assets.directory` serves
-`./dist`. Keep the Cloudflare dashboard build fields empty so the Wrangler config stays the single
-source of truth; deploying the repository root instead (no build command, assets directory `.`)
-serves the untranspiled `index.html` and `/src/main.ts`, which leaves the page blank.
+The same repository also deploys to Cloudflare Pages. `wrangler.jsonc` is a Pages configuration
+file (`name`, `pages_build_output_dir`, `compatibility_date`), so Pages serves `./dist`, not the
+repository root. Pages does not read the build command from a Wrangler file, so the project must
+have **Build command** `pnpm build` set in the dashboard (Settings → Build & deployments). Without
+it the build step is skipped and the untranspiled `index.html` / `src/main.ts` is deployed, which
+leaves the page blank.
 
 ## Data
 
