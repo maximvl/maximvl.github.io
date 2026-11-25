@@ -51,7 +51,7 @@ export const projects: Project[] = [
   {
     name: 'PoE Eldritch Mods',
     href: 'mods/',
-    location: 'On this site',
+    location: '/mods/',
     mark: 'EM',
     accent: '#e2683f'
   }
