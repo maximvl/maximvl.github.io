@@ -1,609 +1,249 @@
 <script lang="ts">
-  import ModCard from './lib/ModCard.svelte';
-  import { dataset } from './lib/data';
-  import { SLOT_LABELS, SOURCES } from './lib/labels';
-  import type { ModGroup, SlotKey, SourceKey } from './lib/types';
-
-  const groups: ModGroup[] = dataset.groups;
-  const slots: SlotKey[] = dataset.slots.filter((s) => SLOT_LABELS[s]);
-
-  let slot = $state<SlotKey | 'all'>('all');
-  let source = $state<SourceKey | 'all'>('all');
-  let query = $state('');
-  let sort = $state<'name' | 'slot'>('name');
-  let dense = $state(true);
-  let searchEl = $state<HTMLInputElement | null>(null);
-  let openKeys = $state<Set<string>>(new Set());
-
-  const slotCounts = $derived.by(() => {
-    const counts = { all: groups.length } as Record<SlotKey | 'all', number>;
-    for (const s of slots) counts[s] = groups.filter((g) => g.slots.includes(s)).length;
-    return counts;
-  });
-
-  const sourceCounts = $derived.by(() => {
-    const counts = { all: groups.length, exarch: 0, eater: 0 } as Record<SourceKey | 'all', number>;
-    for (const g of groups) counts[g.source] += 1;
-    return counts;
-  });
-
-  const needle = $derived(query.trim().toLowerCase());
-
-  const filtered = $derived.by(() => {
-    const list = groups.filter((g) => {
-      if (source !== 'all' && g.source !== source) return false;
-      if (slot !== 'all' && !g.slots.includes(slot)) return false;
-      if (needle) {
-        const haystack = `${g.name} ${g.tags.join(' ')}`.toLowerCase();
-        if (!haystack.includes(needle)) return false;
-      }
-      return true;
-    });
-
-    if (sort === 'slot') {
-      const first = (g: ModGroup): number => slots.findIndex((s) => g.slots.includes(s));
-      list.sort((a, b) => first(a) - first(b) || a.name.localeCompare(b.name));
-    }
-    return list;
-  });
-
-  const filteredTiers = $derived(
-    filtered.reduce(
-      (n, g) => n + Object.values(g.tiers).reduce((sum, list) => sum + (list?.length ?? 0), 0),
-      0
-    )
-  );
-
-  const hasFilters = $derived(slot !== 'all' || source !== 'all' || needle !== '');
-
-  const allOpen = $derived(filtered.length > 0 && filtered.every((g) => openKeys.has(g.key)));
-
-  function toggle(key: string) {
-    const next = new Set(openKeys);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    openKeys = next;
-  }
-
-  function toggleAll() {
-    openKeys = allOpen ? new Set() : new Set(filtered.map((g) => g.key));
-  }
-
-  function reset() {
-    slot = 'all';
-    source = 'all';
-    query = '';
-  }
-
-  function onKeydown(event: KeyboardEvent) {
-    if (event.key === '/' && document.activeElement !== searchEl) {
-      event.preventDefault();
-      searchEl?.focus();
-    } else if (event.key === 'Escape' && document.activeElement === searchEl) {
-      query = '';
-      searchEl?.blur();
-    }
-  }
+  import { projects } from './lib/projects';
 </script>
-
-<svelte:window onkeydown={onKeydown} />
 
 <div class="page">
   <header class="masthead">
-    <div class="titles">
-      <h1>Eldritch Implicits</h1>
-      <p>
-        Implicit modifiers from the <strong class="exarch">Searing Exarch</strong> and
-        <strong class="eater">Eater of Worlds</strong> eldritch currencies, grouped by modifier with
-        every tier side by side. Click a modifier to expand its tiers.
-      </p>
-    </div>
-    <div class="links">
-      <a href="https://poedb.tw/us/Eldritch_implicit" target="_blank" rel="noreferrer">poedb source</a>
-      <span class="dot">·</span>
-      <span>item level 75</span>
-    </div>
+    <p class="handle">mapcar</p>
+    <h1>Projects</h1>
+    <p class="lede">Apps, tools and experiments I build and maintain.</p>
   </header>
 
-  <div class="toolbar">
-    <div class="row">
-      <div class="search">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-8 6a8 8 0 1 1 14.32 4.9l4.39 4.4-1.42 1.41-4.39-4.39A8 8 0 0 1 2 10Z"
-          />
-        </svg>
-        <input
-          bind:this={searchEl}
-          bind:value={query}
-          type="search"
-          placeholder="Search modifiers or tags — e.g. attack speed, frenzy"
-          aria-label="Search modifiers"
-        />
-        <kbd>/</kbd>
-      </div>
+  <main class="grid" aria-label="Projects">
+    {#each projects as project (project.href)}
+      <a
+        class="project"
+        class:internal={!project.external}
+        href={project.href}
+        style="--accent: {project.accent}"
+        target={project.external ? '_blank' : undefined}
+        rel={project.external ? 'noreferrer' : undefined}
+      >
+        <span class="mark" aria-hidden="true">{project.mark}</span>
 
-      <label class="sort">
-        Sort
-        <select bind:value={sort}>
-          <option value="name">Name</option>
-          <option value="slot">Slot</option>
-        </select>
-      </label>
+        <span class="body">
+          <span class="name">{project.name}</span>
+          <span class="location">{project.location}</span>
+        </span>
 
-      <div class="segmented small" role="group" aria-label="Tier detail">
-        <button class:active={dense} onclick={() => (dense = true)} title="Show only the rolled values">
-          Values
-        </button>
-        <button class:active={!dense} onclick={() => (dense = false)} title="Show the full modifier text">
-          Full text
-        </button>
-      </div>
+        <span class="arrow" aria-hidden="true">
+          {#if project.external}
+            <svg viewBox="0 0 24 24">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          {:else}
+            <svg viewBox="0 0 24 24">
+              <path d="M4 12h15M13 6l6 6-6 6" />
+            </svg>
+          {/if}
+        </span>
 
-      <button class="ghost" onclick={toggleAll} disabled={filtered.length === 0}>
-        {allOpen ? 'Collapse all' : 'Expand all'}
-      </button>
-
-      {#if hasFilters}
-        <button class="reset" onclick={reset}>Clear filters</button>
-      {/if}
-    </div>
-
-    <div class="row">
-      <div class="chips" role="group" aria-label="Equipment slot">
-        <button class="chip" class:active={slot === 'all'} onclick={() => (slot = 'all')}>
-          All slots
-        </button>
-        {#each slots as s (s)}
-          <button
-            class="chip"
-            class:active={slot === s}
-            onclick={() => (slot = s)}
-            title={s === 'amulet'
-              ? "Amulets get eldritch implicits from Ukatoa's Ducat (Deepwater crafting), not from Embers or Ichors"
-              : undefined}
-          >
-            {SLOT_LABELS[s]}
-            <span class="count">{slotCounts[s]}</span>
-          </button>
-        {/each}
-      </div>
-
-      <span class="divider" aria-hidden="true"></span>
-
-      <div class="chips" role="group" aria-label="Eldritch source">
-        <button class="chip" class:active={source === 'all'} onclick={() => (source = 'all')}>
-          Both sources
-          <span class="count">{sourceCounts.all}</span>
-        </button>
-        <button
-          class="chip accent"
-          class:active={source === 'exarch'}
-          data-source="exarch"
-          onclick={() => (source = 'exarch')}
-        >
-          Searing Exarch
-          <span class="count">{sourceCounts.exarch}</span>
-        </button>
-        <button
-          class="chip accent"
-          class:active={source === 'eater'}
-          data-source="eater"
-          onclick={() => (source = 'eater')}
-        >
-          Eater of Worlds
-          <span class="count">{sourceCounts.eater}</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <main>
-    <p class="summary">
-      Showing <strong>{filtered.length}</strong> modifier{filtered.length === 1 ? '' : 's'}
-      {#if slot !== 'all'}for <strong>{SLOT_LABELS[slot]}</strong>{/if}
-      {#if source !== 'all'}from <strong class={source}>{SOURCES[source].label}</strong>{/if}
-      <span class="tiers">· {filteredTiers} tiers total</span>
-    </p>
-
-    {#if filtered.length}
-      <div class="grid">
-        {#each filtered as group (group.key)}
-          <ModCard
-            {group}
-            {slot}
-            {dense}
-            open={openKeys.has(group.key)}
-            ontoggle={() => toggle(group.key)}
-          />
-        {/each}
-      </div>
-    {:else}
-      <div class="empty">
-        <p>No modifiers match those filters.</p>
-        <button onclick={reset}>Clear filters</button>
-      </div>
-    {/if}
+        {#if project.external}
+          <span class="sr-only">(opens in a new tab)</span>
+        {/if}
+      </a>
+    {/each}
   </main>
 
   <footer>
-    <p>
-      Pick a slot to see spawn weights: the typical weight appears in each column header, and a
-      badge marks any tier that differs (higher is more likely, <code>0</code> means that tier
-      cannot roll there). Tier 1 is the strongest tier. Amulet entries come from
-      <a href="https://poedb.tw/us/Ukatoas_Ducat" target="_blank" rel="noreferrer">Ukatoa's Ducat</a>,
-      the Deepwater currency that grants an eldritch implicit to a non-unique amulet — Embers and
-      Ichors themselves only work on body armour, boots, gloves and helmet. Data scraped from
-      <a href={dataset.source} target="_blank" rel="noreferrer">poedb</a>.
-    </p>
+    <a href="https://github.com/maximvl/maximvl.github.io" target="_blank" rel="noreferrer">
+      Source on GitHub
+    </a>
+    <span class="dot" aria-hidden="true">·</span>
+    <span>mapcar</span>
   </footer>
 </div>
 
 <style>
   .page {
-    max-width: 1500px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 940px;
     margin: 0 auto;
-    padding: 1.5rem clamp(0.75rem, 2.5vw, 2rem) 3rem;
+    padding: clamp(2.5rem, 8vh, 6rem) clamp(1rem, 4vw, 2rem) 2.5rem;
   }
 
   .masthead {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 0.75rem 2rem;
-    padding-bottom: 1.1rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 1rem;
+    margin-bottom: clamp(1.75rem, 5vw, 3rem);
+  }
+
+  .handle {
+    margin: 0 0 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
   }
 
   h1 {
     margin: 0;
-    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-size: clamp(2.3rem, 6vw, 3.6rem);
     font-weight: 700;
-    letter-spacing: 0.01em;
+    line-height: 1;
+    letter-spacing: -0.02em;
     color: var(--text-bright);
   }
 
-  .titles p {
-    margin: 0.35rem 0 0;
-    max-width: 62ch;
+  .lede {
+    margin: 0.9rem 0 0;
+    max-width: 52ch;
     color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  .exarch {
-    color: var(--exarch);
-    font-weight: 600;
-  }
-
-  .eater {
-    color: var(--eater);
-    font-weight: 600;
-  }
-
-  .links {
-    font-size: 0.78rem;
-    color: var(--muted);
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .links a {
-    color: var(--gold);
-  }
-
-  .toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 0.7rem 0;
-    margin-bottom: 0.35rem;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .search {
-    position: relative;
-    flex: 1 1 320px;
-    display: flex;
-    align-items: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0 0.6rem;
-    transition: border-color 0.15s;
-  }
-
-  .search:focus-within {
-    border-color: var(--gold);
-  }
-
-  .search svg {
-    width: 15px;
-    height: 15px;
-    fill: var(--muted);
-    flex: none;
-  }
-
-  .search input {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--text-bright);
-    font: inherit;
-    font-size: 0.9rem;
-    padding: 0.5rem 0.55rem;
-  }
-
-  .search input::-webkit-search-cancel-button {
-    filter: invert(0.6);
-  }
-
-  kbd {
-    font-size: 0.7rem;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 0 0.3rem;
-    font-family: inherit;
-  }
-
-  .segmented {
-    display: flex;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--surface);
-  }
-
-  .segmented button,
-  .chip,
-  .ghost,
-  .reset,
-  .empty button {
-    font: inherit;
-    font-size: 0.82rem;
-    color: var(--muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.45rem 0.7rem;
-    transition:
-      color 0.15s,
-      background 0.15s;
-  }
-
-  .segmented button + button {
-    border-left: 1px solid var(--border);
-  }
-
-  .segmented button:hover,
-  .chip:hover {
-    color: var(--text-bright);
-    background: color-mix(in srgb, var(--text-bright) 6%, transparent);
-  }
-
-  .segmented button.active {
-    color: var(--text-bright);
-    background: color-mix(in srgb, var(--gold) 16%, transparent);
-    box-shadow: inset 0 -2px 0 var(--gold);
-  }
-
-  .segmented.small button {
-    font-size: 0.76rem;
-    padding: 0.3rem 0.55rem;
-  }
-
-  .count {
-    color: var(--muted);
-    font-size: 0.72rem;
-    font-variant-numeric: tabular-nums;
-    margin-left: 0.25rem;
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .chip {
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--surface);
-    padding: 0.3rem 0.7rem;
-  }
-
-  .chip.active {
-    color: #14181d;
-    background: var(--gold);
-    border-color: var(--gold);
-    font-weight: 600;
-  }
-
-  .chip.active .count {
-    color: color-mix(in srgb, #14181d 65%, transparent);
-  }
-
-  .chip.accent[data-source='exarch'] {
-    --chip-accent: var(--exarch);
-  }
-
-  .chip.accent[data-source='eater'] {
-    --chip-accent: var(--eater);
-  }
-
-  .chip.accent {
-    border-color: color-mix(in srgb, var(--chip-accent) 45%, var(--border));
-  }
-
-  .chip.accent:hover {
-    color: var(--chip-accent);
-  }
-
-  .chip.accent.active {
-    color: #14181d;
-    background: var(--chip-accent);
-    border-color: var(--chip-accent);
-    font-weight: 600;
-  }
-
-  .divider {
-    width: 1px;
-    align-self: stretch;
-    min-height: 1.5rem;
-    margin: 0 0.15rem;
-    background: var(--border);
-  }
-
-  .sort {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.78rem;
-    color: var(--muted);
-  }
-
-  .sort select {
-    font: inherit;
-    font-size: 0.8rem;
-    color: var(--text-bright);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.28rem 0.4rem;
-  }
-
-  .ghost {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
-    background: var(--surface);
-  }
-
-  .ghost:hover:not(:disabled) {
-    color: var(--gold);
-    border-color: color-mix(in srgb, var(--gold) 55%, transparent);
-  }
-
-  .ghost:disabled {
-    opacity: 0.45;
-    cursor: default;
-  }
-
-  .reset {
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
-  }
-
-  .reset:hover {
-    color: var(--text-bright);
-    border-color: var(--muted);
-  }
-
-  .summary {
-    margin: 0.5rem 0 0.75rem;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-
-  .summary strong {
-    color: var(--text-bright);
-    font-weight: 600;
-  }
-
-  .summary strong.exarch {
-    color: var(--exarch);
-  }
-
-  .summary strong.eater {
-    color: var(--eater);
-  }
-
-  .tiers {
-    opacity: 0.75;
+    font-size: 1rem;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr));
-    gap: 0.75rem;
-    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
   }
 
-  .empty {
-    text-align: center;
-    padding: 4rem 1rem;
-    color: var(--muted);
-    border: 1px dashed var(--border);
+  .project {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    color: inherit;
+    text-decoration: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
+    overflow: hidden;
+    transition:
+      transform 0.16s ease,
+      border-color 0.16s ease,
+      background 0.16s ease;
   }
 
-  .empty button {
-    margin-top: 0.75rem;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    border-radius: 6px;
+  /* Accent rail on the leading edge. */
+  .project::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--accent);
+    opacity: 0.55;
+    transition: opacity 0.16s ease;
+  }
+
+  .project:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  }
+
+  .project:hover::before {
+    opacity: 1;
+  }
+
+  .project:focus-visible {
+    outline-color: var(--accent);
+  }
+
+  .project.internal {
+    grid-column: 1 / -1;
+    border-color: color-mix(in srgb, var(--gold) 32%, var(--border));
+  }
+
+  .mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 9px;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .name {
+    color: var(--text-bright);
+    font-size: 1.02rem;
+    font-weight: 600;
+  }
+
+  .location {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .arrow {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--muted);
+    transition:
+      transform 0.16s ease,
+      color 0.16s ease;
+  }
+
+  .arrow svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .project:hover .arrow {
+    color: var(--accent);
+  }
+
+  .project:not(.internal):hover .arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .project.internal:hover .arrow {
+    transform: translateX(3px);
   }
 
   footer {
-    margin-top: 2.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 2.5rem;
     color: var(--muted);
-    font-size: 0.76rem;
-    line-height: 1.6;
-  }
-
-  footer p {
-    margin: 0;
-    max-width: 80ch;
+    font-size: 0.78rem;
   }
 
   footer a {
+    color: var(--muted);
+  }
+
+  footer a:hover {
     color: var(--gold);
   }
 
-  code {
-    font-size: 0.72rem;
-    padding: 0 0.2rem;
-    border-radius: 3px;
-    background: var(--surface);
-  }
-
-  @media (max-width: 1100px) {
-    .divider {
-      display: none;
-    }
+  .dot {
+    opacity: 0.6;
   }
 
   @media (max-width: 640px) {
-    .toolbar {
-      position: static;
-    }
-
-    .segmented {
-      flex: 1 1 100%;
-    }
-
-    .segmented button {
-      flex: 1;
+    .grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

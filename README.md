@@ -1,16 +1,31 @@
-# Eldritch Implicits
+# mapcar — projects
 
 **Live: <https://maximvl.github.io/>**
 
-A small Svelte 5 + TypeScript browser for the Eldritch implicit modifiers from the **Searing Exarch** and
-**Eater of Worlds** currencies, scraped from
-[poedb](https://poedb.tw/us/Eldritch_implicit).
+Personal project index for mapcar, built with Svelte 5, TypeScript and
+Vite.
+
+## Site
+
+- `/` — the project index: links to Loto, Turnir, Whenis, the EventLab team site and the PoE tools
+  on this site.
+- `/mods/` — the Eldritch implicit modifier browser described below.
+
+Both pages are separate static HTML entries built by Vite (`index.html` and `mods/index.html`), so
+each has a real URL and no client-side router is needed. The project list lives in
+[`src/lib/projects.ts`](src/lib/projects.ts); add an entry there to show another project on the home
+page.
+
+## Eldritch Implicits
+
+A browser for the Eldritch implicit modifiers from the **Searing Exarch** and **Eater of Worlds**
+currencies, scraped from [poedb](https://poedb.tw/us/Eldritch_implicit).
 
 Each modifier is a card that lines up every tier across its three forms: base, "while a Unique
 Enemy is in your Presence" and "while a Pinnacle Atlas Boss is in your Presence". Filter by
 equipment slot to see only the mods that can roll there.
 
-## Features
+### Features
 
 - Filter by slot (Gloves, Boots, Helmet, Body Armour, Amulet), by source (Searing Exarch / Eater of
   Worlds), or free-text search (modifier names and tags such as `attack`, `speed`, `frenzy`).
@@ -36,12 +51,15 @@ pnpm build
 pnpm preview
 ```
 
+The dev server serves the home page at `/` and the modifier browser at `/mods/`.
+
 ## Deployment
 
 Pushes to `master` are built and published to GitHub Pages by
 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): the workflow installs with pnpm,
 runs `pnpm check` and `pnpm build`, then uploads `dist` through `actions/deploy-pages`. This is a
-user page (`maximvl.github.io`), so Vite's default `/` base is correct.
+user page (`maximvl.github.io`), so Vite's default `/` base is correct and `dist/mods/index.html`
+is reachable at `/mods/`.
 
 The same repository also deploys to Cloudflare Pages. `wrangler.jsonc` is a Pages configuration
 file (`name`, `pages_build_output_dir`, `compatibility_date`), so Pages serves `./dist`, not the
@@ -69,13 +87,19 @@ of rows where poedb omits the mod-id tooltip. Re-run it when poedb updates for a
 ## Structure
 
 ```
-scripts/build-data.ts        scraper + grouping logic
-src/App.svelte               filters, search and card grid
+index.html                   project index entry page
+mods/index.html              Eldritch browser entry page
+src/App.svelte               project index
+src/Mods.svelte              filters, search and card grid
+src/main.ts                  mounts the project index
+src/mods.ts                  mounts the Eldritch browser
+src/lib/projects.ts          project index links
 src/lib/ModCard.svelte       one modifier group with its tier table
 src/lib/labels.ts            labels and value-formatting helpers
 src/lib/types.ts             dataset interfaces (SourceKey, SlotKey, TierEntry…)
 src/lib/data.ts              typed import of the generated JSON
 src/lib/data/eldritch.json   generated dataset
+scripts/build-data.ts        scraper + grouping logic
 tsconfig.json                project references (app + node)
 tsconfig.app.json            app/component config
 tsconfig.node.json           config files + scraper config
