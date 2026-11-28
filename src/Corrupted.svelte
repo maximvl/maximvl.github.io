@@ -267,8 +267,9 @@
       Corrupted modifiers replace an existing implicit modifier when an item is corrupted.
       Variants are ordered by item level, so T1 is the highest item level rather than a formal
       in-game tier. Pick an item class to see its spawn weights; higher is more likely, and
-      <code>0</code> means that variant cannot roll for the selected class. Map-only area
-      outcomes are excluded from this equipment browser. Data scraped from
+      <code>0</code> means that variant cannot roll for the selected class. PoEDB's synthetic
+      all-class block of map outcomes and passive-tree notables is excluded because it is not part
+      of the item corruption pool. Data scraped from
       <a href={dataset.source} target="_blank" rel="noreferrer">poedb</a>.
     </p>
   </footer>

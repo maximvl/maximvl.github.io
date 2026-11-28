@@ -68,7 +68,8 @@ gloves, bows and wands) keep their own weights and item levels.
   compact numeric view.
 - Pick an item class to show its spawn weight on every variant. T1 is the highest item level, not a
   formal in-game tier.
-- Map-only area outcomes are excluded because poedb renders them with synthetic item-class weights.
+- A synthetic all-class block of map outcomes and passive-tree notables is excluded because those
+  rows are not item corruption implicits.
 
 ## Development
 
