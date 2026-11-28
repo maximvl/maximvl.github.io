@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "data": "node scripts/build-data.ts",
+    "data:corrupted": "node scripts/build-corrupted-data.ts",
+    "data:all": "pnpm data && pnpm data:corrupted",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "devDependencies": {

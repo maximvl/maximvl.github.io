@@ -11,7 +11,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         home: resolve(import.meta.dirname, 'index.html'),
-        mods: resolve(import.meta.dirname, 'mods/index.html')
+        mods: resolve(import.meta.dirname, 'mods/index.html'),
+        corrupted: resolve(import.meta.dirname, 'corrupted/index.html')
       }
     }
   }

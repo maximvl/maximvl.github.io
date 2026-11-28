@@ -10,6 +10,7 @@
   --color-gold: #c8a24a;
   --color-exarch: #e2683f;
   --color-eater: #38b6a6;
+  --color-corrupt: #c77be5;
 }
 
 @keyframes rise {
@@ -52,6 +53,7 @@
   --gold: #c8a24a;
   --exarch: #e2683f;
   --eater: #38b6a6;
+  --corrupt: #c77be5;
 
   color-scheme: dark;
   font-family:

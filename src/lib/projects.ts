@@ -54,5 +54,12 @@ export const projects: Project[] = [
     location: '/mods/',
     mark: 'EM',
     accent: '#e2683f'
+  },
+  {
+    name: 'PoE Corrupted Mods',
+    href: 'corrupted/',
+    location: '/corrupted/',
+    mark: 'CM',
+    accent: '#c77be5'
   }
 ];

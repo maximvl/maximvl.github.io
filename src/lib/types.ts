@@ -1,3 +1,5 @@
+import type { CategoryKey } from './item-classes.js';
+
 export type SourceKey = 'exarch' | 'eater';
 
 export type SlotKey = 'gloves' | 'boots' | 'helmet' | 'body_armour' | 'amulet';
@@ -34,4 +36,38 @@ export interface Dataset {
   source: string;
   slots: SlotKey[];
   groups: ModGroup[];
+}
+
+/** One corruption outcome, ordered from the highest item level to the lowest. */
+export interface CorruptedTierEntry {
+  tier: number;
+  level: number;
+  text: string;
+  /** Spawn weight per item class; absent classes cannot roll this entry. */
+  weights: Record<string, number>;
+}
+
+/**
+ * A corrupted modifier and the exact item classes it rolls on. PoEDB lists the
+ * same wording several times with different class sets, so those are kept as
+ * separate groups rather than merging their incompatible weight tables.
+ */
+export interface CorruptedModGroup {
+  /** Unique key, based on the normalized text and its item-class set. */
+  key: string;
+  /** Display name with numeric values replaced by `#`. */
+  name: string;
+  categories: CategoryKey[];
+  classes: string[];
+  tierCount: number;
+  levelRange: [number, number];
+  tiers: CorruptedTierEntry[];
+}
+
+export interface CorruptedDataset {
+  generatedAt: string;
+  source: string;
+  classes: string[];
+  categories: CategoryKey[];
+  groups: CorruptedModGroup[];
 }

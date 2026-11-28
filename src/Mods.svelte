@@ -91,6 +91,8 @@
 <div class="page">
   <nav class="topnav">
     <a href="../">← All projects</a>
+    <span>·</span>
+    <a href="../corrupted/">Corrupted implicits</a>
   </nav>
 
   <header class="masthead">
@@ -253,6 +255,8 @@
   .topnav {
     margin-bottom: 0.9rem;
     font-size: 0.78rem;
+    display: flex;
+    gap: 0.45rem;
   }
 
   .topnav a {
