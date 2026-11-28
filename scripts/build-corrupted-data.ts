@@ -87,23 +87,12 @@ async function loadHtml(): Promise<string> {
 }
 
 /**
- * The table contains a handful of corrupted-map outcomes. poedb renders those
- * with every item class at a synthetic weight, which would incorrectly put
- * "Area contains..." implicits on gloves and rings. Keep this browser focused
- * on equipment implicits.
+ * poedb appends map outcomes and passive-tree notables to this table and gives
+ * them the same synthetic weight on 35 item classes. Those rows are not item
+ * corruption implicits (they would incorrectly put Iron Will on gloves), so
+ * drop the whole block. Real entries in this table have at most 16 classes.
  */
-function isMapOnly(text: string): boolean {
-  return (
-    /^map implicit /.test(text) ||
-    /^local explicit mod effect /.test(text) ||
-    /^Area contains /.test(text) ||
-    /^Area is affected by /.test(text) ||
-    /^Atlas Passives /.test(text) ||
-    /^Players' Vaal Skills do not apply Soul Gain Prevention$/.test(text) ||
-    /^Unique Monsters drop Corrupted Items$/.test(text) ||
-    / in your Maps$/.test(text)
-  );
-}
+const SYNTHETIC_ALL_CLASSES = 20;
 
 function parseRows(html: string): RawRow[] {
   const tabStart = html.indexOf('id="VaalOrbCorruptedImplicit"');
@@ -122,15 +111,15 @@ function parseRows(html: string): RawRow[] {
   while ((match = rowRe.exec(table))) {
     const [, levelHtml, modHtml, classHtml] = match;
     const text = stripTags(modHtml);
-
-    if (!text || isMapOnly(text)) continue;
+    if (!text) continue;
 
     const weights: Record<string, number> = {};
     for (const [, key, weight] of classHtml.matchAll(classRe)) {
       if (ITEM_CLASS_BY_KEY[key]) weights[key] = Number(weight);
     }
 
-    if (!Object.values(weights).some((weight) => weight > 0)) continue;
+    const positiveClasses = Object.values(weights).filter((weight) => weight > 0);
+    if (!positiveClasses.length || positiveClasses.length >= SYNTHETIC_ALL_CLASSES) continue;
     rows.push({ level: Number(levelHtml), text, weights });
   }
 
